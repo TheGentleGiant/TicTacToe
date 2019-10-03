@@ -1,209 +1,177 @@
 #include <iostream>
+#include <string>
+#include <stdlib.h>
 
+#define GRID_SIZE 3
 using namespace std;
-char player = 'X';
-char grid[3][3] = 
-{'1', '2', '3',
-'4', '5', '6', 
-'7', '8', '9'};
-int counter;
 
-void Draw() {
-	system("cls");
-	for (int i = 0; i < 3; i++)
-	{
-		for (int j = 0; j < 3; j++)
+class Game {
+private :
+	char grid[GRID_SIZE][GRID_SIZE];
+public:
+	Game() {
+		GenerateGrid();
+		DrawGrid();
+		CheckVictory();
+		while (true)
 		{
-			cout << grid[i][j] << " ";
-		}
-		cout << endl;
-	}
-}
+			ChectTurn();
+			DrawGrid();
+			CheckVictory();
 
-void Input(){
-	int a;
-	cout << "It's"<<player<<" turn \n" << "press the number of the cell you want to change: ";
-	cin >> a;
-
-	if (a == 1){
-		if (grid[0][0] == '1')		{
-			grid[0][0] = player;
+			CPUTurn();
+			DrawGrid();
+			CheckVictory();
 		}
-		else{
-			cout << "Cell Occupied input another cell: " << endl;
-			Input();
-		}
-	}
-	if (a == 2) {
-		if (grid[0][1] == '2') {
-			grid[0][1] = player;
-		}
-		else {
-			cout << "Cell Occupied input another cell: " << endl;
-			Input();
-		}
-	}
-	if (a == 3) {
-		if (grid[0][2] == '3') {
-			grid[0][2] = player;
-		}
-		else {
-			cout << "Cell Occupied input another cell: " << endl;
-			Input();
-		}
-	}
-	if (a == 4) {
-		if (grid[1][0] == '4') {
-			grid[1][0] = player;
-		}
-		else {
-			cout << "Cell Occupied input another cell: " << endl;
-			Input();
-		}
-	}
-	if (a == 5) {
-		if (grid[1][1] == '5') {
-			grid[1][1] = player;
-		}
-		else {
-			cout << "Cell Occupied input another cell: " << endl;
-			Input();
-		}
-	}
-	if (a == 6) {
-		if (grid[1][2] == '6') {
-			grid[1][2] = player;
-		}
-		else {
-			cout << "Cell Occupied input another cell: " << endl;
-			Input();
-		}
-	}
-	if (a == 7) {
-		if (grid[2][0] == '7') {
-			grid[2][0] = player;
-		}
-		else {
-			cout << "Cell Occupied input another cell: " << endl;
-			Input();
-		}
-	}
-	if (a == 8) {
-		if (grid[2][1] == '8') {
-			grid[2][1] = player;
-		}
-		else {
-			cout << "Cell Occupied input another cell: " << endl;
-			Input();
-		}
-	}
-	if (a == 9) {
-		if (grid[2][2] == '9') {
-			grid[2][2] = player;
-		}
-		else {
-			cout << "Cell Occupied input another cell: " << endl;
-			Input();
-		}
-	}
-}
-
-void TurnManager()
-{
-	if (player == 'X')	{
-		player = 'O';
-	}
-	else {
-		player = 'X';
-	}
-}
-char Win() {
-	/*FIRST PLAYER*/
-	//check Row
-	if (grid[0][0] == 'X' && grid[0][1] == 'X' && grid[0][2] == 'X'){
-		return 'X';
-	}
-	if (grid[1][0] == 'X' && grid[1][1] == 'X' && grid[1][2] == 'X'){
-		return 'X';
-	}
-	if (grid[2][0] == 'X' && grid[2][1] == 'X' && grid[2][2] == 'X'){
-		return 'X';
 	}
 
-	//Check Column
-	if (grid[0][0] == 'X' && grid[1][0] == 'X' && grid[2][0] == 'X') {
-		return 'X';
-	}
-	if (grid[0][1] == 'X' && grid[1][1] == 'X' && grid[2][1] == 'X') {
-		return 'X';
-	}
-	if (grid[0][2] == 'X' && grid[1][2] == 'X' && grid[2][2] == 'X') {
-		return 'X';
-	}
-	//Check Diagonals
-	if (grid[0][0] == 'X' && grid[1][1] == 'X' && grid[2][2] == 'X') {
-		return 'X';
-	}
-	if (grid[0][2] == 'X' && grid[1][1] == 'X' && grid[2][0] == 'X') {
-		return 'X';
+	void CPUTurn() {
+		
+		while (true)
+		{
+			int CPUChoice = (rand() % 9) + 1;
+			
+
+			int row = (CPUChoice - 1) / GRID_SIZE;
+			int column = (CPUChoice - 1) % GRID_SIZE;
+
+			char gridPos = grid[row][column];
+
+			if (gridPos == 'X'|| gridPos == '0')
+			{
+				continue;
+			}
+			else
+			{
+				printf("CPU choice was: %d \n", CPUChoice);
+				grid[row][column] = 'O';
+				break;
+			}
+		}
 	}
 
-	/*SECOND PLAYER*/
-	if (grid[0][0] == 'O' && grid[0][1] == 'O' && grid[0][2] == 'O') {
-		return 'O';
-	}
-	if (grid[1][0] == 'O' && grid[1][1] == 'O' && grid[1][2] == 'O') {
-		return 'O';
-	}
-	if (grid[2][0] == 'O' && grid[2][1] == 'O' && grid[2][2] == 'O') {
-		return 'O';
+	void CheckVictory() {
+		const char* PossibleWinCombinations[8] = {
+			"123",
+			"456",
+			"789",
+			"147",
+			"258",
+			"369",
+			"159",
+			"753",
+		};
+
+		for (int  i = 0; i < 8; i++)
+		{
+			bool hasWon = true;
+			char previousValue = '0';
+			const char* WinningMove = PossibleWinCombinations[i];
+			
+			for (int j = 0; j < 3; j++)
+			{
+				char character = WinningMove[j];
+
+				int enteredNumber = character - '0';
+				int gridSpace = enteredNumber - 1;
+				int row = gridSpace / GRID_SIZE;
+				int column = gridSpace % GRID_SIZE;
+
+				char gridChar = grid[row][column];
+
+				if (previousValue == '0')
+				{
+					previousValue = gridChar;
+				}
+				else if (previousValue == gridChar)
+				{
+					continue;
+				}
+				else {
+					hasWon = false;
+					break;
+				}
+			}
+			if (hasWon)
+			{
+				puts("!!!! We Have A Winner !!!!");
+				printf("Looks like %c won, Greetings!!", previousValue);
+
+				exit(0);
+				break;
+
+			}
+
+		}
+		
 	}
 
-	//Check Column
-	if (grid[0][0] == 'O' && grid[1][0] == 'O' && grid[2][0] == 'O') {
-		return 'O';
+	void GenerateGrid() {
+		int counter = 1;
+		for (int x = 0; x < GRID_SIZE; ++x)
+		{
+			for (int  y = 0; y < GRID_SIZE; y++)
+			{
+				grid[x][y] = to_string(counter).c_str()[0];
+				counter++;
+			}
+		}
 	}
-	if (grid[0][1] == 'O' && grid[1][1] == 'O' && grid[2][1] == 'O') {
-		return 'O';
+	void DrawGrid() {
+		system("cls");
+		printf("---------------\n");
+		for (int x = 0; x < GRID_SIZE; ++x)
+		{
+			for (int y = 0; y < GRID_SIZE; y++)
+			{
+				printf(" %c |", grid[x][y]);
+			}
+			printf("\n---------------\n");
+		}
 	}
-	if (grid[0][2] == 'O' && grid[1][2] == 'O' && grid[2][2] == 'O') {
-		return 'O';
-	}
-	//Check Diagonals
-	if (grid[0][0] == 'O' && grid[1][1] == 'O' && grid[2][2] == 'O') {
-		return 'O';
-	}
-	if (grid[0][2] == 'O' && grid[1][1] == 'O' && grid[2][0] == 'O') {
-		return 'O';
-	}
+	void ChectTurn() {
+		string input;
+		while (true)
+		{
+			puts("In which cell would you like to play?");
+			getline(cin, input);
 
-	return '/';
-}
+			if (input != "")
+			{
+				char entered = input.c_str()[0];
+				if (entered >= '1' && entered <= '9')
+				{
+					int enteredNumber = entered - '0';
+					int index = enteredNumber - 1;
 
+					int row = index / GRID_SIZE;
+					int column = index % GRID_SIZE;
+
+					char gridPos = grid[row][column];
+					//printf("you want to play at position: %c \n", gridPos);
+					if (gridPos == 'X' || gridPos == 'O')
+					{
+						puts("That cell is already occupied!");
+					}
+					else {
+						grid[row][column] = 'X';
+						break;
+					}
+				}
+				else {
+					puts("please enter a valid number between 1 and 9!");
+				}
+			}
+			else {
+				puts("please type something!");
+			}
+		}
+	}
+};
 int main()
 {
-	counter = 0;
-	Draw();
-	while (1)
-	{
-		counter++;
-		Input();
-		Draw();
-		if (Win() == 'X') {
-			cout << "PLayer one Wins!" << endl;
-			break;
-		}
-		else if (Win() == 'O'){
-			cout << "Player Two Wins!" << endl;
-			break;
-		}
-		else if (Win() == '/' && counter == 9)
-		{
-			cout << "Draw!!" << endl;
-			break;
-		}
-		TurnManager();
-	}
+	Game game;
+
 	system("pause");
 	return 0;
 }
