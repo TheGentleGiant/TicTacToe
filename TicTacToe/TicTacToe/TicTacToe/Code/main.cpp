@@ -1,177 +1,252 @@
 #include <iostream>
 #include <string>
 #include <stdlib.h>
+#include <iomanip>
+#include <algorithm>
+#include <limits>
 
 #define GRID_SIZE 3
 using namespace std;
 
 class Game {
-private :
-	char grid[GRID_SIZE][GRID_SIZE];
+	enum class Player {
+		empty = '-',
+		player = 'X',
+		cpu = 'O',
+	};
+
+	struct Move {
+		unsigned int x = 0;
+		unsigned int y = 0;
+	};
+
+	Player grid[GRID_SIZE][GRID_SIZE];
+
 public:
 	Game() {
-		GenerateGrid();
-		DrawGrid();
-		CheckVictory();
-		while (true)
+		for (unsigned int x = 0; x < GRID_SIZE; x++)
 		{
-			ChectTurn();
-			DrawGrid();
-			CheckVictory();
-
-			CPUTurn();
-			DrawGrid();
-			CheckVictory();
-		}
-	}
-
-	void CPUTurn() {
-		
-		while (true)
-		{
-			int CPUChoice = (rand() % 9) + 1;
-			
-
-			int row = (CPUChoice - 1) / GRID_SIZE;
-			int column = (CPUChoice - 1) % GRID_SIZE;
-
-			char gridPos = grid[row][column];
-
-			if (gridPos == 'X'|| gridPos == '0')
+			for (unsigned int y = 0; y < GRID_SIZE; y++)
 			{
-				continue;
+				grid[x][y] = Player::empty;
 			}
-			else
-			{
-				printf("CPU choice was: %d \n", CPUChoice);
-				grid[row][column] = 'O';
-				break;
-			}
-		}
-	}
-
-	void CheckVictory() {
-		const char* PossibleWinCombinations[8] = {
-			"123",
-			"456",
-			"789",
-			"147",
-			"258",
-			"369",
-			"159",
-			"753",
-		};
-
-		for (int  i = 0; i < 8; i++)
-		{
-			bool hasWon = true;
-			char previousValue = '0';
-			const char* WinningMove = PossibleWinCombinations[i];
-			
-			for (int j = 0; j < 3; j++)
-			{
-				char character = WinningMove[j];
-
-				int enteredNumber = character - '0';
-				int gridSpace = enteredNumber - 1;
-				int row = gridSpace / GRID_SIZE;
-				int column = gridSpace % GRID_SIZE;
-
-				char gridChar = grid[row][column];
-
-				if (previousValue == '0')
-				{
-					previousValue = gridChar;
-				}
-				else if (previousValue == gridChar)
-				{
-					continue;
-				}
-				else {
-					hasWon = false;
-					break;
-				}
-			}
-			if (hasWon)
-			{
-				puts("!!!! We Have A Winner !!!!");
-				printf("Looks like %c won, Greetings!!", previousValue);
-
-				exit(0);
-				break;
-
-			}
-
 		}
 		
 	}
 
-	void GenerateGrid() {
-		int counter = 1;
-		for (int x = 0; x < GRID_SIZE; ++x)
-		{
-			for (int  y = 0; y < GRID_SIZE; y++)
-			{
-				grid[x][y] = to_string(counter).c_str()[0];
-				counter++;
-			}
-		}
-	}
 	void DrawGrid() {
 		system("cls");
 		printf("---------------\n");
-		for (int x = 0; x < GRID_SIZE; ++x)
+		for (unsigned int x = 0; x < GRID_SIZE; ++x)
 		{
-			for (int y = 0; y < GRID_SIZE; y++)
+			for (unsigned int y = 0; y < GRID_SIZE; y++)
 			{
 				printf(" %c |", grid[x][y]);
 			}
 			printf("\n---------------\n");
 		}
 	}
-	void ChectTurn() {
-		string input;
-		while (true)
+	bool IsADraw() {
+		for (unsigned int i = 0; i < GRID_SIZE; i++)
 		{
-			puts("In which cell would you like to play?");
-			getline(cin, input);
-
-			if (input != "")
+			if (grid[i][0] == Player::empty||grid[i][1] == Player::empty||grid[i][2]== Player::empty)
 			{
-				char entered = input.c_str()[0];
-				if (entered >= '1' && entered <= '9')
-				{
-					int enteredNumber = entered - '0';
-					int index = enteredNumber - 1;
-
-					int row = index / GRID_SIZE;
-					int column = index % GRID_SIZE;
-
-					char gridPos = grid[row][column];
-					//printf("you want to play at position: %c \n", gridPos);
-					if (gridPos == 'X' || gridPos == 'O')
-					{
-						puts("That cell is already occupied!");
-					}
-					else {
-						grid[row][column] = 'X';
-						break;
-					}
-				}
-				else {
-					puts("please enter a valid number between 1 and 9!");
-				}
-			}
-			else {
-				puts("please type something!");
+				return false;
 			}
 		}
+		return true;
 	}
+
+	bool CheckVictory(Player player) {
+		for (unsigned int i = 0; i < GRID_SIZE; i++)
+		{
+			/*Horizontal*/
+			if (grid[i][0] == player && grid[i][1] == player && grid[i][2] == player)
+			{
+				return true;
+			}
+			/*Vertical*/
+			if (grid[0][i] == player && grid[1][i] == player && grid[2][i] == player)
+			{
+				return true;
+			}
+		}
+		if (grid[0][0] == player && grid[1][1] == player && grid[2][2] == player)
+		{
+			return true;
+		}
+		/*Vertical*/
+		if (grid[0][2] == player && grid[1][1] == player && grid[2][0] == player)
+		{
+			return true;
+		}
+
+		return false;
+	}
+
+	Move minimax() {
+		int score = std::numeric_limits<int>::max();
+		Move move;
+
+		for (unsigned int i = 0; i < GRID_SIZE; i++)
+		{
+			for (unsigned int j = 0; j < GRID_SIZE; j++)
+			{
+				if (grid[i][j] == Player::empty)
+				{
+					grid[i][j] = Player::cpu;
+					
+					int temp = MaxSearch();
+
+					if (temp < score)
+					{
+						score = temp;
+						move.x = i;
+						move.y = j;
+					}
+
+					grid[i][j] = Player::empty;
+				}
+			}
+		}
+		return move;
+	}
+
+	int MaxSearch() {
+		if (CheckVictory(Player::player))
+		{
+			return 10;
+		}
+		else if (CheckVictory(Player::cpu))
+		{
+			return -10;
+		}
+		else if (IsADraw())
+		{
+			return 0;
+		}
+
+		int score = std::numeric_limits<int>::min();
+
+		for (unsigned int i = 0; i < GRID_SIZE; i++)
+		{
+			for  (unsigned int j = 0; j < GRID_SIZE; j++)
+			{
+				if (grid[i][j] == Player::empty)
+				{
+					grid[i][j] = Player::player;
+					score = std::max(score, MinSearch());
+					grid[i][j] = Player::empty;
+				}
+			}
+		}
+
+		return score;
+	}
+	int MinSearch() {
+		if (CheckVictory(Player::player))
+		{
+			return 10;
+		}
+		else if (CheckVictory(Player::cpu))
+		{
+			return -10;
+		}
+		else if (IsADraw())
+		{
+			return 0;
+		}
+
+		int score = std::numeric_limits<int>::max();
+
+		for (unsigned int i = 0; i < GRID_SIZE; i++)
+		{
+			for (unsigned int j = 0; j < GRID_SIZE; j++)
+			{
+				if (grid[i][j] == Player::empty)
+				{
+					grid[i][j] = Player::cpu;
+					score = std::max(score, MaxSearch());
+					grid[i][j] = Player::empty;
+				}
+			}
+		}
+
+		return score;
+	}
+
+	void GetPlayerMove() {
+		bool failedMove = true;
+		unsigned int x = -1, y = -1;
+
+		do
+		{
+			puts("Player Move: ");
+			char move;
+			std::cin >> move;
+			x = move - '0';
+			std::cin >> move;
+			y = move - '0';
+
+			failedMove = grid[x][y] != Player::empty;
+
+			std::cin.clear();
+			std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+		} while (failedMove);
+
+		grid[x][y] = Player::player;
+	}
+
+	void PlayGame() {
+		unsigned int turn = 0;
+		bool endGame = false;
+
+		DrawGrid();
+		puts("Enter the ROW and COLUMN you wish to play in: ");
+
+		do
+		{
+			if (turn == 0)
+			{
+				GetPlayerMove();
+
+				if (CheckVictory(Player::player))
+				{
+					puts("Player wins! ");
+					endGame = true;
+				}
+			}
+			else
+			{
+				puts("CPU move: ");
+				Move AIMove = minimax();
+				printf("CPU Move: %d, %d", AIMove.x, AIMove.y);
+				grid[AIMove.x][AIMove.y] = Player::cpu;
+
+				if (CheckVictory(Player::cpu))
+				{
+					puts("CPU Wins.... You Suck! XP");
+					endGame = true;
+				}
+			}
+
+			if (IsADraw())
+			{
+				puts("IT'S A DRAW!!");
+				endGame = true;
+			}
+
+			turn ^= 1;
+			DrawGrid();
+
+
+		} while (!endGame);
+	}
+
 };
 int main()
 {
 	Game game;
-
-	system("pause");
-	return 0;
+	game.PlayGame();
+	cin.ignore();
 }
