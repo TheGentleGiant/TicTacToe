@@ -68,11 +68,11 @@ public:
 		{
 			if (grid[r][0] == grid[r][1] && grid[r][1] == grid[r][2])
 			{
-				if (grid[r][0] == Player::player)
+				if (grid[r][0] == Player::cpu)
 				{
 					return +10;
 				}
-				else if (grid[r][0] == Player::cpu) {
+				else if (grid[r][0] == Player::player) {
 					return -10;
 				}
 			}
@@ -82,11 +82,11 @@ public:
 		{
 			if (grid[0][c] == grid[1][c] && grid[1][c] == grid[2][c])
 			{
-				if (grid[0][c] == Player::player)
+				if (grid[0][c] == Player::cpu)
 				{
 					return +10;
 				}
-				else if (grid[0][c] == Player::cpu) {
+				else if (grid[0][c] == Player::player) {
 					return -10;
 				}
 			}
@@ -94,22 +94,22 @@ public:
 		//Diagonals
 		if (grid[0][0] == grid[1][1] && grid[1][1] == grid[2][2])
 		{
-			if (grid[0][0] == Player::player)
+			if (grid[0][0] == Player::cpu)
 			{
 				return +10;
 			}
-			else if (grid[0][0] == Player::cpu)
+			else if (grid[0][0] == Player::player)
 			{
 				return -10;
 			}
 		}
 		if (grid[0][2] == grid[1][1] && grid[1][1] == grid[2][0])
 		{
-			if (grid[0][2] == Player::player)
+			if (grid[0][2] == Player::cpu)
 			{
 				return +10;
 			}
-			else if (grid[0][2] == Player::cpu)
+			else if (grid[0][2] == Player::player)
 			{
 				return -10;
 			}
@@ -145,8 +145,9 @@ public:
 				{
 					if (grid[i][j] == Player::empty)
 					{
-						grid[i][j] = Player::player;
-						bestValue = max(bestValue, Minimax(grid, depth + 1, !bIsMaxValue));
+						grid[i][j] = Player::cpu;
+						int temp = max(bestValue, Minimax(grid, depth + 1, !bIsMaxValue));
+						bestValue = max(bestValue, temp);
 						grid[i][j] = Player::empty;
 					}
 				}
@@ -162,8 +163,9 @@ public:
 				{
 					if (grid[i][j] == Player::empty)
 					{
-						grid[i][j] = Player::cpu;
-						bestValue = min(bestValue, Minimax(grid, depth + 1, !bIsMaxValue));
+						grid[i][j] = Player::player;
+						int temp = min(bestValue, Minimax(grid, depth + 1, !bIsMaxValue));
+						bestValue = min(bestValue, temp);
 						grid[i][j] = Player::empty;
 					}
 				}
@@ -185,7 +187,7 @@ public:
 			{
 				if (grid[i][j] == Player::empty)
 				{
-					grid[i][j] = Player::player;
+					grid[i][j] = Player::cpu;
 					int temp = Minimax(grid, 0, false);
 
 					grid[i][j] = Player::empty;
@@ -258,137 +260,6 @@ public:
 
 		} while (!endGame);
 	}
-	/*bool IsADraw() {
-		for (unsigned int i = 0; i < GRID_SIZE; i++)
-		{
-			if (grid[i][0] == Player::empty||grid[i][1] == Player::empty||grid[i][2]== Player::empty)
-			{
-				return false;
-			}
-		}
-		return true;
-	}
-
-	bool CheckVictory(Player player) {
-		for (unsigned int i = 0; i < GRID_SIZE; i++)
-		{
-			/ *Horizontal* /
-			if (grid[i][0] == player && grid[i][1] == player && grid[i][2] == player)
-			{
-				return true;
-			}
-			/ *Vertical* /
-			if (grid[0][i] == player && grid[1][i] == player && grid[2][i] == player)
-			{
-				return true;
-			}
-		}
-		if (grid[0][0] == player && grid[1][1] == player && grid[2][2] == player)
-		{
-			return true;
-		}
-		/ *Vertical* /
-		if (grid[0][2] == player && grid[1][1] == player && grid[2][0] == player)
-		{
-			return true;
-		}
-
-		return false;
-	}
-
-	Move minimax() {
-		int score = std::numeric_limits<int>::max();
-		Move move;
-
-		for (unsigned int i = 0; i < GRID_SIZE; i++)
-		{
-			for (unsigned int j = 0; j < GRID_SIZE; j++)
-			{
-				if (grid[i][j] == Player::empty)
-				{
-					grid[i][j] = Player::cpu;
-					
-					int temp = MaxSearch();
-
-					if (temp < score)
-					{
-						score = temp;
-						move.x = i;
-						move.y = j;
-					}
-
-					grid[i][j] = Player::empty;
-				}
-			}
-		}
-		return move;
-	}
-
-	int MaxSearch() {
-		if (CheckVictory(Player::player))
-		{
-			return 10;
-		}
-		else if (CheckVictory(Player::cpu))
-		{
-			return -10;
-		}
-		else if (IsADraw())
-		{
-			return 0;
-		}
-
-		int score = std::numeric_limits<int>::min();
-
-		for (unsigned int i = 0; i < GRID_SIZE; i++)
-		{
-			for  (unsigned int j = 0; j < GRID_SIZE; j++)
-			{
-				if (grid[i][j] == Player::empty)
-				{
-					grid[i][j] = Player::player;
-					score = std::max(score, MinSearch());
-					grid[i][j] = Player::empty;
-				}
-			}
-		}
-
-		return score;
-	}
-	int MinSearch() {
-		if (CheckVictory(Player::player))
-		{
-			return 10;
-		}
-		else if (CheckVictory(Player::cpu))
-		{
-			return -10;
-		}
-		else if (IsADraw())
-		{
-			return 0;
-		}
-
-		int score = std::numeric_limits<int>::max();
-
-		for (unsigned int i = 0; i < GRID_SIZE; i++)
-		{
-			for (unsigned int j = 0; j < GRID_SIZE; j++)
-			{
-				if (grid[i][j] == Player::empty)
-				{
-					grid[i][j] = Player::cpu;
-					score = std::max(score, MaxSearch());
-					grid[i][j] = Player::empty;
-				}
-			}
-		}
-
-		return score;
-	}
-
-	
-*/
 
 };
 int main()
